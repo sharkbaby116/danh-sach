@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sổ Đánh Giá Hạnh Kiểm & Trò Chơi Lớp 11A1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Thư viện tạo hiệu ứng pháo bông -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --warning: #f59e0b;
+            --border: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 20px 12px;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* User Bar Header */
+        .user-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 10px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .user-info { font-weight: 600; color: var(--text-main); }
+        .role-badge-user {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: #e0e7ff;
+            color: var(--primary);
+            margin-left: 6px;
+        }
+        .btn-logout {
+            background: #f1f5f9;
+            color: var(--danger);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-logout:hover { background: var(--danger-bg); }
+
+        /* Banner Header */
+        .app-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 24px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.3);
+            position: relative;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .app-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        .app-header p { font-size: 13px; opacity: 0.85; }
+
+        .week-badge {
+            background: rgba(255, 255, 255, 0.25);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Thanh Quản Lý Tuần & Trò Chơi */
+        .week-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .btn-week-action {
+            flex: 1;
+            min-width: 120px;
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn-week-action:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Bảng Thống Kê Nhanh */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-card {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 8px 6px;
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+        }
+
+        .stat-value { font-size: 18px; font-weight: 700; }
+        .stat-label { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
+        /* Ô Tìm Kiếm */
+        .search-container { position: relative; }
+        .search-input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            font-size: 14px;
+            color: var(--text-main);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+
+        /* Danh Sách Học Sinh */
+        .student-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 55vh;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .student-card {
+            background: var(--card-bg);
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .student-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+        }
+
+        .student-meta { display: flex; align-items: center; gap: 12px; }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: #e0e7ff;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .student-details { display: flex; flex-direction: column; }
+        .student-name { font-weight: 600; font-size: 14px; color: var(--text-main); }
+        .student-note { font-size: 11px; color: var(--text-muted); }
+
+        /* Badge Hạnh Kiểm */
+        .rank-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .rank-excel { background: #f3e8ff; color: #7e22ce; }
+        .rank-good { background: #ecfdf5; color: #059669; }
+        .rank-fair { background: #fffbeb; color: #d97706; }
+        .rank-avg { background: #fff7ed; color: #ea580c; }
+        .rank-weak { background: #fef2f2; color: #dc2626; }
+
+        .student-controls { display: flex; align-items: center; gap: 6px; }
+
+        .score-badge {
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 20px;
+            min-width: 52px;
+            text-align: center;
+            margin-right: 4px;
+        }
+        .score-good { background: var(--success-bg); color: var(--success); }
+        .score-medium { background: #fffbeb; color: var(--warning); }
+        .score-bad { background: var(--danger-bg); color: var(--danger); }
+
+        .btn-eval {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-eval:hover { background: var(--primary-hover); }
+
+        .btn-edit-icon {
+            background: #f1f5f9;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-edit-icon:hover { background: #e2e8f0; color: var(--text-main); }
+
+        /* Popup Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(6px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 460px;
+            border-radius: 24px;
+            padding: 24px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            animation: popup 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes popup {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title { font-size: 16px; font-weight: 700; color: var(--text-main); }
+        .close-icon {
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text-muted);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-main);
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin: 16px 0 10px 0;
+        }
+
+        .rule-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        @media (max-width: 400px) {
+            .rule-list { grid-template-columns: 1fr; }
+        }
+
+        .rule-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            text-align: left;
+        }
+
+        .rule-btn:hover {
+            border-color: var(--primary);
+            background: #f5f3ff;
+        }
+
+        .rule-btn.minus .pts { color: var(--danger); font-weight: 700; }
+        .rule-btn.plus .pts { color: var(--success); font-weight: 700; }
+        .rule-btn.reset-single { grid-column: 1 / -1; background: #f1f5f9; justify-content: center; gap: 8px; font-weight: 600; color: #334155; }
+        .rule-btn.reset-single:hover { background: #e2e8f0; }
+
+        /* Item Lịch Sử Tuần Cũ */
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: var(--bg-main);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            background: #f1f5f9;
+            border-color: var(--primary);
+        }
+
+        /* Form Đăng ký / Đăng nhập */
+        .auth-tabs {
+            display: flex;
+            gap: 8px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .auth-tab.active {
+            background: var(--card-bg);
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .form-group input, .form-group select {
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+            outline: none;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover { background: var(--primary-hover); }
+
+        .auth-error {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+            text-align: center;
+        }
+
+        /* Giao Diện Vòng Quay May Mắn */
+        .wheel-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 10px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 22px solid #ef4444;
+            z-index: 10;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .center-btn {
+            position: absolute;
+            width: 54px;
+            height: 54px;
+            background: #22c55e;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            border: 3px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 5;
+            user-select: none;
+        }
+
+        .center-btn:hover { background: #16a34a; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Thanh thông tin đăng nhập -->
+        <div class="user-bar" id="userBar">
+            <div>
+                <span class="user-info" id="currentUsername">Khách</span>
+                <span class="role-badge-user" id="currentRole">Học sinh</span>
+            </div>
+            <button class="btn-logout" onclick="logout()">Đăng xuất</button>
+        </div>
+
+        <!-- Banner Header Dashboard -->
+        <div class="app-header">
+            <div class="header-top">
+                <div>
+                    <h1>Lớp 11A1 - Hạnh Kiểm</h1>
+                    <p>Quản lý nếp sống & thi đua học sinh</p>
+                </div>
+                <div class="week-badge" id="currentWeekDisplay">Tuần 1</div>
+            </div>
+
+            <!-- Các nút thao tác Tuần, Thêm HS & Xuất file & Trò chơi -->
+            <div class="week-actions">
+                <button class="btn-week-action" id="btnNewWeek" style="display: none;" onclick="saveAndStartNewWeek()">
+                    💾 Lưu & Sang tuần mới
+                </button>
+                <button class="btn-week-action" id="btnAddStudent" style="display: none;" onclick="openAddStudentModal()">
+                    ➕ Thêm học sinh
+                </button>
+                <button class="btn-week-action" onclick="exportToCSV()">
+                    📥 Xuất bảng điểm
+                </button>
+                <button class="btn-week-action" onclick="openHistoryModal()">
+                    📜 Xem lịch sử các tuần
+                </button>
+                <button class="btn-week-action" style="background: rgba(255, 255, 255, 0.35); font-weight: 700;" onclick="openWheelModal()">
+                    🎡 Vòng Quay May Mắn
+                </button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">48</div>
+                    <div class="stat-label">Sĩ số</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statAvg">100</div>
+                    <div class="stat-label">Điểm TB</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statWarning">0</div>
+                    <div class="stat-label">Cần chú ý</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thanh Tìm Kiếm -->
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" onkeyup="filterStudents()" placeholder="Tìm kiếm tên học sinh...">
+        </div>
+
+        <!-- Danh Sách Học Sinh -->
+        <ul class="student-list" id="studentList"></ul>
+    </div>
+
+    <!-- Modal Đăng ký / Đăng nhập -->
+    <div class="modal-overlay" id="authModal" style="display: flex;">
+        <div class="modal-box">
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Đăng Nhập</div>
+                <div class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Đăng Ký</div>
+            </div>
+
+            <form id="formLogin" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Tên đăng nhập</label>
+                    <input type="text" id="loginUser" placeholder="Nhập tên đăng nhập..." required>
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="loginPass" placeholder="Nhập mật khẩu..." required>
+                </div>
+                <div class="auth-error" id="loginError">Tên đăng nhập hoặc mật khẩu không đúng!</div>
+                <button type="submit" class="btn-submit">Đăng Nhập</button>
+            </form>
+
+            <form id="formRegister" onsubmit="handleRegister(event)" style="display: none;">
+                <div class="form-group">
+                    <label>Tên tài khoản</label>
+                    <input type="text" id="regUser" placeholder="Tạo tên đăng nhập..." required>
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="regPass" placeholder="Tạo mật khẩu..." required>
+                </div>
+                <div class="form-group">
+                    <label>Vai trò người dùng</label>
+                    <select id="regRole" onchange="toggleTeacherCodeInput()">
+                        <option value="student">Học sinh / Phụ huynh (Chỉ xem)</option>
+                        <option value="teacher">Giáo viên / Ban cán sự (Có quyền cộng/trừ điểm)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="teacherCodeGroup" style="display: none;">
+                    <label>Mã xác thực Giáo viên / BCS</label>
+                    <input type="password" id="regTeacherCode" placeholder="Nhập mã xác thực">
+                </div>
+
+                <div class="auth-error" id="regError">Tên đăng nhập đã tồn tại!</div>
+                <button type="submit" class="btn-submit">Tạo Tài Khoản</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Thêm / Sửa / Xóa Học Sinh -->
+    <div class="modal-overlay" id="manageStudentModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title" id="manageStudentTitle">Thêm Học Sinh Mới</div>
+                <div class="close-icon" onclick="closeModal('manageStudentModal')">✕</div>
+            </div>
+            <div class="form-group">
+                <label>Họ và tên học sinh</label>
+                <input type="text" id="studentNameInput" placeholder="Nhập họ và tên đầy đủ...">
+            </div>
+            <button class="btn-submit" onclick="saveStudent()">Lưu Thông Tin</button>
+            <button class="btn-submit" id="btnDeleteStudent" style="background: var(--danger); margin-top: 8px; display: none;" onclick="deleteStudent()">🗑️ Xóa Học Sinh Này</button>
+        </div>
+    </div>
+
+    <!-- Modal Popup Đánh Giá Điểm -->
+    <div class="modal-overlay" id="ruleModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title" id="modalStudentName">Học sinh</div>
+                    <p style="font-size: 12px; color: var(--text-muted);" id="modalStudentScore">Hiện tại: 100 điểm</p>
+                </div>
+                <div class="close-icon" onclick="closeModal('ruleModal')">✕</div>
+            </div>
+
+            <!-- Ô nhập điểm tùy chỉnh -->
+            <div class="section-label" style="color: var(--primary);">Cộng / Trừ Điểm Tùy Chỉnh</div>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="number" id="customPts" placeholder="Điểm (VD: -3 hoặc 5)" style="width: 40%; padding: 10px; border-radius: 10px; border: 1px solid var(--border); font-size: 13px; outline: none;">
+                <input type="text" id="customReason" placeholder="Lý do cộng/trừ..." style="width: 60%; padding: 10px; border-radius: 10px; border: 1px solid var(--border); font-size: 13px; outline: none;">
+            </div>
+            <button class="btn-submit" style="padding: 10px; font-size: 13px; margin-top: 0; margin-bottom: 12px;" onclick="applyCustomRule()">Áp dụng điểm tùy chỉnh</button>
+
+            <div class="section-label" style="color: var(--danger);">Vi Phạm Cố Định (Trừ Điểm)</div>
+            <div class="rule-list">
+                <button class="rule-btn minus" onclick="applyRule('Không chép bài', -5)">
+                    <span>📖 Không chép bài</span><span class="pts">-5</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Bị điểm kém (<5)', -5)">
+                    <span>📉 Điểm kém (<5)</span><span class="pts">-5</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Bị điểm 0', -10)">
+                    <span>❌ Bị điểm 0</span><span class="pts">-10</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Vào lớp muộn', -5)">
+                    <span>🚪 Vào lớp muộn</span><span class="pts">-5</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Nói chuyện trong giờ', -5)">
+                    <span>🗣️ Nói chuyện</span><span class="pts">-5</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Không làm bài tập', -5)">
+                    <span>📝 Bỏ bài tập</span><span class="pts">-5</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Đi học muộn', -10)">
+                    <span>⏰ Đi học muộn</span><span class="pts">-10</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Sai đồng phục', -10)">
+                    <span>👔 Sai đồng phục</span><span class="pts">-10</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Sử dụng ĐT', -10)">
+                    <span>📱 Dùng điện thoại</span><span class="pts">-10</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Trực nhật bẩn', -5)">
+                    <span>🧹 Trực nhật bẩn</span><span class="pts">-5</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Quên sách vở', -5)">
+                    <span>📚 Quên sách vở</span><span class="pts">-5</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Ngủ trong giờ', -5)">
+                    <span>😴 Ngủ gục</span><span class="pts">-5</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Vô lễ GV', -20)">
+                    <span>⚠️ Vô lễ GV</span><span class="pts">-20</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Hút thuốc lá', -30)">
+                    <span>🚬 Thuốc lá</span><span class="pts">-30</span>
+                </button>
+                <button class="rule-btn minus" onclick="applyRule('Đánh nhau', -30)">
+                    <span>🥊 Đánh nhau</span><span class="pts">-30</span>
+                </button>
+                <button class="rule-btn minus" style="grid-column: 1 / -1;" onclick="applyRule('Trừ 1đ tự do', -1)">
+                    <span>➖ Trừ 1 điểm tự do</span><span class="pts">-1</span>
+                </button>
+            </div>
+
+            <div class="section-label" style="color: var(--success);">Tuyên Dương Cố Định (Cộng Điểm)</div>
+            <div class="rule-list">
+                <button class="rule-btn plus" onclick="applyRule('Điểm 8, 9, 10', 5)">
+                    <span>🌟 Điểm 8, 9, 10</span><span class="pts">+5</span>
+                </button>
+                <button class="rule-btn plus" onclick="applyRule('Phát biểu bài', 1)">
+                    <span>✋ Phát biểu</span><span class="pts">+1</span>
+                </button>
+                <button class="rule-btn plus" style="grid-column: 1 / -1;" onclick="applyRule('Cộng 1đ tự do', 1)">
+                    <span>➕ Cộng 1 điểm tự do</span><span class="pts">+1</span>
+                </button>
+            </div>
+
+            <div class="section-label">Cài Đặt Riêng</div>
+            <button class="rule-btn reset-single" onclick="resetSingleStudent()">
+                <span>🔄 Đặt lại 100 điểm cho học sinh này</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Xem Lịch Sử Các Tuần -->
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">Lịch Sử Các Tuần Thi Đua</div>
+                    <p style="font-size: 12px; color: var(--text-muted);">Danh sách lưu trữ từ các tuần trước</p>
+                </div>
+                <div class="close-icon" onclick="closeModal('historyModal')">✕</div>
+            </div>
+            <div id="historyListContainer"></div>
+        </div>
+    </div>
+
+    <!-- Modal Trò Chơi Vòng Quay May Mắn -->
+    <div class="modal-overlay" id="wheelModal">
+        <div class="modal-box" style="text-align: center;">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">🎡 Vòng Quay May Mắn</div>
+                    <p style="font-size: 12px; color: var(--text-muted);">Xoay ngẫu nhiên chọn học sinh trả lời bài</p>
+                </div>
+                <div class="close-icon" onclick="closeModal('wheelModal')">✕</div>
+            </div>
+
+            <div class="wheel-container">
+                <div class="wheel-pointer"></div>
+                <canvas id="wheelCanvas" width="280" height="280"></canvas>
+                <div class="center-btn" onclick="spinWheel()">Quay</div>
+            </div>
+
+            <div id="wheelResult" style="margin-top: 16px; font-size: 16px; font-weight: 700; color: var(--primary); min-height: 24px;"></div>
+            <button class="btn-submit" onclick="spinWheel()" style="margin-top: 10px;">🚀 QUAY NGAY</button>
+        </div>
+    </div>
+
+    <!-- Modal Chi Tiết Điểm Của Tuần Cũ -->
+    <div class="modal-overlay" id="archiveDetailModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title" id="archiveDetailTitle">Bảng Điểm Tuần</div>
+                    <p style="font-size: 12px; color: var(--text-muted);" id="archiveDetailDate"></p>
+                </div>
+                <div class="close-icon" onclick="closeModal('archiveDetailModal')">✕</div>
+            </div>
+            <div id="archiveDetailContent" style="max-height: 60vh; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <script>
+        const defaultNames = [
+            "Nguyễn Thế Anh", "Trần Nhật Anh", "Vương Gia Bảo", "Nguyễn Hồng Cường",
+            "Hoàng Ngọc Châm", "Trần Nguyễn Thùy Chi", "Lê Văn Dũng", "Tạ Đoàn Hoàn Dương",
+            "Trần Quốc Đại", "Hoàng Sơn Hà", "Lâm Thanh Hà", "Nguyễn Trung Hiếu",
+            "Nguyễn Mai Hoa", "Nguyễn Thị Hoa", "Nguyễn Huy Hoàng (3/10)", "Nguyễn Huy Hoàng (15/12)",
+            "Trần Mạnh Hùng", "Nguyễn Tiến Khôi", "Nguyễn Thanh Lam", "Nguyễn Ngọc Lan",
+            "Nguyễn Tùng Lâm", "Đào Diệu Linh", "Trịnh Thùy Linh", "Lê Thành Luân",
+            "Đoàn Cẩm Ly", "Lê Nguyễn Quốc Minh", "Nguyễn Thị Thanh Nga", "Nguyễn Thanh Ngọc",
+            "Vũ Thái Hồng Ngọc", "Nguyễn Thị Tuyết Nhi", "Phạm Kim Oanh", "Phạm Thị Mai Phương",
+            "Nguyễn Anh Quân", "Trịnh Minh Quân", "Nguyễn Anh Quốc", "Dương Minh Tiến",
+            "Dương Thanh Tú", "Lê Minh Tú", "Nguyễn Ngọc Thành", "Nguyễn Dạ Thảo",
+            "Nguyễn Thị Phương Thảo", "Ngô Mạnh Thắng", "Tạ Thị Thúy", "Ngô Bảo Trang",
+            "Nguyễn Thị Thu Trang", "Nguyễn Thu Trang", "Triệu Phương Vy", "Ngô Thị Thanh Huyền"
+        ];
+
+        const VALID_TEACHER_CODES = ['GVNTPT11A1', 'BCSL11A1'];
+
+        const defaultAdmins = [
+            { username: 'admin', password: '0397018120', role: 'teacher' },
+            { username: 'gvcn', password: 'gvcnlop11a1', role: 'teacher' }
+        ];
+
+        let accounts = JSON.parse(localStorage.getItem('class11A1_Accounts')) || defaultAdmins;
+
+        defaultAdmins.forEach(adminAcc => {
+            const existing = accounts.find(acc => acc.username === adminAcc.username);
+            if (existing) {
+                existing.password = adminAcc.password;
+                existing.role = adminAcc.role;
+            } else {
+                accounts.push(adminAcc);
+            }
+        });
+        localStorage.setItem('class11A1_Accounts', JSON.stringify(accounts));
+
+        let currentUser = JSON.parse(localStorage.getItem('class11A1_CurrentUser')) || null;
+        let currentWeek = parseInt(localStorage.getItem('class11A1_CurrentWeek')) || 1;
+        let archives = JSON.parse(localStorage.getItem('class11A1_Archives')) || [];
+
+        let students = JSON.parse(localStorage.getItem('class11A1_HanhKiemRankedData')) || 
+            defaultNames.map(name => ({ name: name, score: 100, lastNote: '' }));
+
+        // Tự động làm sạch các dòng hiển thị "Đã đặt lại 100đ" cũ
+        students.forEach(st => {
+            if (st.lastNote && st.lastNote.includes('Đã đặt lại')) {
+                st.lastNote = '';
+            }
+        });
+
+        let selectedIndex = null;
+        let editingStudentIndex = null;
+
+        /* Khai báo âm thanh nhạc xổ số MP3 */
+        const spinAudio = new Audio('https://www.myinstants.com/media/sounds/nhac-xo-so.mp3');
+
+        function toggleTeacherCodeInput() {
+            const role = document.getElementById('regRole').value;
+            const codeGroup = document.getElementById('teacherCodeGroup');
+            codeGroup.style.display = (role === 'teacher') ? 'flex' : 'none';
+        }
+
+        function switchAuthTab(tab) {
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('regError').style.display = 'none';
+
+            if (tab === 'login') {
+                document.getElementById('tabLogin').classList.add('active');
+                document.getElementById('tabRegister').classList.remove('active');
+                document.getElementById('formLogin').style.display = 'block';
+                document.getElementById('formRegister').style.display = 'none';
+            } else {
+                document.getElementById('tabRegister').classList.add('active');
+                document.getElementById('tabLogin').classList.remove('active');
+                document.getElementById('formRegister').style.display = 'block';
+                document.getElementById('formLogin').style.display = 'none';
+                toggleTeacherCodeInput();
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value.trim();
+
+            const found = accounts.find(acc => acc.username === u && acc.password === p);
+            if (found) {
+                currentUser = found;
+                localStorage.setItem('class11A1_CurrentUser', JSON.stringify(currentUser));
+                document.getElementById('authModal').style.display = 'none';
+                initApp();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const u = document.getElementById('regUser').value.trim();
+            const p = document.getElementById('regPass').value.trim();
+            const r = document.getElementById('regRole').value;
+            const teacherCode = document.getElementById('regTeacherCode').value.trim();
+
+            const regError = document.getElementById('regError');
+            regError.style.display = 'none';
+
+            if (accounts.some(acc => acc.username === u)) {
+                regError.innerText = 'Tên đăng nhập đã tồn tại!';
+                regError.style.display = 'block';
+                return;
+            }
+
+            if (r === 'teacher') {
+                if (!teacherCode) {
+                    regError.innerText = 'Vui lòng nhập Mã xác thực Giáo viên!';
+                    regError.style.display = 'block';
+                    return;
+                }
+                if (!VALID_TEACHER_CODES.includes(teacherCode)) {
+                    regError.innerText = 'Mã xác thực Giáo viên không chính xác!';
+                    regError.style.display = 'block';
+                    return;
+                }
+            }
+
+            const newUser = { username: u, password: p, role: r };
+            accounts.push(newUser);
+            localStorage.setItem('class11A1_Accounts', JSON.stringify(accounts));
+
+            currentUser = newUser;
+            localStorage.setItem('class11A1_CurrentUser', JSON.stringify(currentUser));
+            document.getElementById('authModal').style.display = 'none';
+            initApp();
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('class11A1_CurrentUser');
+            document.getElementById('authModal').style.display = 'flex';
+        }
+
+        function checkAuth() {
+            if (!currentUser) {
+                document.getElementById('authModal').style.display = 'flex';
+            } else {
+                document.getElementById('authModal').style.display = 'none';
+                initApp();
+            }
+        }
+
+        function initApp() {
+            if (!currentUser) return;
+
+            document.getElementById('currentUsername').innerText = currentUser.username;
+            const isTeacher = currentUser.role === 'teacher';
+            document.getElementById('currentRole').innerText = isTeacher ? 'Giáo viên / BCS' : 'Học sinh / PH';
+            
+            document.getElementById('btnNewWeek').style.display = isTeacher ? 'block' : 'none';
+            document.getElementById('btnAddStudent').style.display = isTeacher ? 'block' : 'none';
+            document.getElementById('currentWeekDisplay').innerText = `Tuần ${currentWeek}`;
+
+            render();
+        }
+
+        function getConductRank(score) {
+            if (score > 105) return { name: 'Xuất sắc', cssClass: 'rank-excel' };
+            if (score >= 90) return { name: 'Tốt', cssClass: 'rank-good' };
+            if (score >= 75) return { name: 'Khá', cssClass: 'rank-fair' };
+            if (score >= 50) return { name: 'Trung bình', cssClass: 'rank-avg' };
+            return { name: 'Yếu', cssClass: 'rank-weak' };
+        }
+
+        function getInitials(name) {
+            const parts = name.trim().split(' ');
+            if (parts.length >= 2) {
+                return (parts[parts.length - 2][0] + parts[parts.length - 1][0]).toUpperCase();
+            }
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        function render() {
+            const list = document.getElementById('studentList');
+            list.innerHTML = '';
+
+            let totalScore = 0;
+            let warningCount = 0;
+            const isTeacher = currentUser && currentUser.role === 'teacher';
+
+            students.forEach((student, index) => {
+                totalScore += student.score;
+                if (student.score < 90) warningCount++;
+
+                const rank = getConductRank(student.score);
+                const scoreClass = student.score >= 90 ? 'score-good' : (student.score >= 75 ? 'score-medium' : 'score-bad');
+
+                const li = document.createElement('li');
+                li.className = 'student-card';
+                li.innerHTML = `
+                    <div class="student-meta">
+                        <div class="avatar">${getInitials(student.name)}</div>
+                        <div class="student-details">
+                            <div class="student-name">${student.name}</div>
+                            <div>
+                                <span class="rank-badge ${rank.cssClass}">${rank.name}</span>
+                                <span class="student-note">${student.lastNote ? ' • ' + student.lastNote : ''}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="student-controls">
+                        <div class="score-badge ${scoreClass}">${student.score}đ</div>
+                        ${isTeacher ? `
+                            <button class="btn-edit-icon" title="Sửa học sinh" onclick="openEditStudentModal(${index})">✏️</button>
+                            <button class="btn-eval" onclick="openEvalModal(${index})">Đánh giá</button>
+                        ` : ''}
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+
+            document.getElementById('statTotal').innerText = students.length;
+            document.getElementById('statAvg').innerText = students.length ? (totalScore / students.length).toFixed(1) : 0;
+            document.getElementById('statWarning').innerText = warningCount;
+
+            localStorage.setItem('class11A1_HanhKiemRankedData', JSON.stringify(students));
+        }
+
+        function filterStudents() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.student-card');
+            cards.forEach(card => {
+                const name = card.querySelector('.student-name').innerText.toLowerCase();
+                card.style.display = name.includes(q) ? 'flex' : 'none';
+            });
+        }
+
+        /* --- QUẢN LÝ HỌC SINH (THÊM / SỬA / XÓA) --- */
+        function openAddStudentModal() {
+            editingStudentIndex = null;
+            document.getElementById('manageStudentTitle').innerText = 'Thêm Học Sinh Mới';
+            document.getElementById('studentNameInput').value = '';
+            document.getElementById('btnDeleteStudent').style.display = 'none';
+            document.getElementById('manageStudentModal').style.display = 'flex';
+        }
+
+        function openEditStudentModal(index) {
+            editingStudentIndex = index;
+            document.getElementById('manageStudentTitle').innerText = 'Sửa Tên Học Sinh';
+            document.getElementById('studentNameInput').value = students[index].name;
+            document.getElementById('btnDeleteStudent').style.display = 'block';
+            document.getElementById('manageStudentModal').style.display = 'flex';
+        }
+
+        function saveStudent() {
+            const name = document.getElementById('studentNameInput').value.trim();
+            if (!name) {
+                alert('Vui lòng nhập họ tên học sinh!');
+                return;
+            }
+
+            if (editingStudentIndex === null) {
+                students.push({ name: name, score: 100, lastNote: 'Học sinh mới' });
+            } else {
+                students[editingStudentIndex].name = name;
+            }
+
+            closeModal('manageStudentModal');
+            render();
+        }
+
+        function deleteStudent() {
+            if (editingStudentIndex === null) return;
+            if (!confirm(`Bạn có chắc muốn xóa học sinh "${students[editingStudentIndex].name}" khỏi danh sách?`)) return;
+
+            students.splice(editingStudentIndex, 1);
+            closeModal('manageStudentModal');
+            render();
+        }
+
+        /* --- ĐÁNH GIÁ ĐIỂM HẠNH KIỂM --- */
+        function openEvalModal(index) {
+            selectedIndex = index;
+            const st = students[index];
+            document.getElementById('modalStudentName').innerText = st.name;
+            document.getElementById('modalStudentScore').innerText = `Hiện tại: ${st.score} điểm`;
+            document.getElementById('ruleModal').style.display = 'flex';
+        }
+
+        function applyRule(ruleName, pts) {
+            if (selectedIndex === null) return;
+            students[selectedIndex].score += pts;
+            students[selectedIndex].lastNote = `${ruleName} (${pts > 0 ? '+' + pts : pts}đ)`;
+            closeModal('ruleModal');
+            render();
+        }
+
+        function applyCustomRule() {
+            if (selectedIndex === null) return;
+            const ptsInput = document.getElementById('customPts').value;
+            const reasonInput = document.getElementById('customReason').value.trim();
+
+            if (!ptsInput || isNaN(ptsInput)) {
+                alert('Vui lòng nhập số điểm hợp lệ!');
+                return;
+            }
+
+            const pts = parseInt(ptsInput);
+            const reason = reasonInput || (pts >= 0 ? 'Cộng điểm' : 'Trừ điểm');
+
+            students[selectedIndex].score += pts;
+            students[selectedIndex].lastNote = `${reason} (${pts > 0 ? '+' + pts : pts}đ)`;
+
+            document.getElementById('customPts').value = '';
+            document.getElementById('customReason').value = '';
+
+            closeModal('ruleModal');
+            render();
+        }
+
+        function resetSingleStudent() {
+            if (selectedIndex === null) return;
+            students[selectedIndex].score = 100;
+            students[selectedIndex].lastNote = ''; // Xóa sạch dòng ghi chú chữ
+            closeModal('ruleModal');
+            render();
+        }
+
+        /* --- XUẤT FILE CSV/EXCEL --- */
+        function exportToCSV() {
+            if (students.length === 0) {
+                alert('Danh sách học sinh trống!');
+                return;
+            }
+
+            let csvContent = "\uFEFFSTT,Họ và tên,Điểm hạnh kiểm,Xếp loại,Ghi chú gần nhất\n";
+            students.forEach((st, idx) => {
+                const rank = getConductRank(st.score).name;
+                const note = st.lastNote ? st.lastNote.replace(/,/g, ' ') : '';
+                csvContent += `${idx + 1},"${st.name}",${st.score},"${rank}","${note}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `BangDiem_Tuan${currentWeek}_Lop11A1.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            if (modalId === 'wheelModal') {
+                spinAudio.pause();
+                spinAudio.currentTime = 0;
+            }
+        }
+
+        function saveAndStartNewWeek() {
+            if (!confirm(`Bạn có chắc muốn chốt Tuần ${currentWeek} và sang Tuần mới không?`)) return;
+
+            archives.push({
+                week: currentWeek,
+                date: new Date().toLocaleDateString('vi-VN'),
+                data: JSON.parse(JSON.stringify(students))
+            });
+
+            currentWeek++;
+            students.forEach(st => { st.score = 100; st.lastNote = ''; });
+
+            localStorage.setItem('class11A1_CurrentWeek', currentWeek);
+            localStorage.setItem('class11A1_Archives', JSON.stringify(archives));
+
+            initApp();
+        }
+
+        function openHistoryModal() {
+            const container = document.getElementById('historyListContainer');
+            container.innerHTML = '';
+
+            if (archives.length === 0) {
+                container.innerHTML = `<p style="text-align:center; font-size:13px; color:var(--text-muted); padding:20px;">Chưa có lịch sử tuần cũ nào!</p>`;
+            } else {
+                archives.forEach((arch) => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    item.onclick = () => viewArchiveDetail(arch);
+                    item.innerHTML = `
+                        <div>
+                            <strong style="font-size:14px;">Tuần ${arch.week}</strong>
+                            <div style="font-size:11px; color:var(--text-muted);">Ngày chốt: ${arch.date}</div>
+                        </div>
+                        <span style="font-size:12px; color:var(--primary); font-weight:600;">Xem chi tiết ➔</span>
+                    `;
+                    container.appendChild(item);
+                });
+            }
+            document.getElementById('historyModal').style.display = 'flex';
+        }
+
+        function viewArchiveDetail(arch) {
+            document.getElementById('archiveDetailTitle').innerText = `Bảng Điểm Tuần ${arch.week}`;
+            document.getElementById('archiveDetailDate').innerText = `Ngày chốt: ${arch.date}`;
+            
+            const content = document.getElementById('archiveDetailContent');
+            let html = `<ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">`;
+            arch.data.forEach(st => {
+                html += `
+                    <li style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--bg-main); border-radius:8px; font-size:13px;">
+                        <span>${st.name}</span>
+                        <strong>${st.score} điểm</strong>
+                    </li>
+                `;
+            });
+            html += `</ul>`;
+            content.innerHTML = html;
+
+            closeModal('historyModal');
+            document.getElementById('archiveDetailModal').style.display = 'flex';
+        }
+
+        /* --- XỬ LÝ ÂM THANH QUAY XỔ SỐ & CHIẾN THẮNG --- */
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playTickSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(650, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.035);
+
+                gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.035);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 0.035);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Âm thanh ngân dài chiến thắng "ting ting" dồn dập & hiệu ứng ngân
+        function playWinSound() {
+            try {
+                const ctx = getAudioContext();
+                const notes = [
+                    { f: 523.25, t: 0.0, d: 0.4 },  // C5
+                    { f: 659.25, t: 0.15, d: 0.4 }, // E5
+                    { f: 783.99, t: 0.30, d: 0.4 }, // G5
+                    { f: 1046.50, t: 0.45, d: 0.6 },// C6
+                    { f: 1318.51, t: 0.70, d: 0.5 },// E6 (Ting)
+                    { f: 1567.98, t: 0.90, d: 0.5 },// G6 (Ting)
+                    { f: 2093.00, t: 1.10, d: 1.2 } // C7 (Tinggggg ngân dài)
+                ];
+
+                notes.forEach(item => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(item.f, ctx.currentTime + item.t);
+
+                    gain.gain.setValueAtTime(0, ctx.currentTime + item.t);
+                    gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + item.t + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + item.t + item.d);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.start(ctx.currentTime + item.t);
+                    osc.stop(ctx.currentTime + item.t + item.d);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        /* --- XỬ LÝ TRÒ CHƠI VÒNG QUAY MAY MẮN --- */
+        let currentAngle = 0;
+        let isSpinning = false;
+        const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7', '#ec4899', '#14b8a6'];
+
+        function openWheelModal() {
+            document.getElementById('wheelModal').style.display = 'flex';
+            document.getElementById('wheelResult').innerText = '';
+            drawWheel();
+        }
+
+        function getShortName(fullName) {
+            const parts = fullName.trim().split(' ');
+            return parts[parts.length - 1];
+        }
+
+        function drawWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const numSlices = students.length;
+            if (numSlices === 0) return;
+
+            const sliceAngle = (2 * Math.PI) / numSlices;
+            const radius = canvas.width / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const fontSize = Math.max(7, Math.min(10, Math.floor(350 / numSlices)));
+
+            students.forEach((student, i) => {
+                const angle = currentAngle + i * sliceAngle;
+                ctx.beginPath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.moveTo(radius, radius);
+                ctx.arc(radius, radius, radius, angle, angle + sliceAngle);
+                ctx.lineTo(radius, radius);
+                ctx.fill();
+
+                ctx.save();
+                ctx.translate(radius, radius);
+                ctx.rotate(angle + sliceAngle / 2);
+                ctx.textAlign = "right";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "#ffffff";
+                ctx.font = `bold ${fontSize}px 'Plus Jakarta Sans', sans-serif`;
+                ctx.fillText(getShortName(student.name), radius - 12, 0);
+                ctx.restore();
+            });
+        }
+
+        function triggerFireworks() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                var particleCount = 40 * (timeLeft / duration);
+
+                confetti({
+                    particleCount: particleCount,
+                    startVelocity: 30,
+                    spread: 360,
+                    ticks: 60,
+                    origin: { x: Math.random() * 0.3 + 0.1, y: Math.random() * 0.4 + 0.1 },
+                    zIndex: 9999
+                });
+                confetti({
+                    particleCount: particleCount,
+                    startVelocity: 30,
+                    spread: 360,
+                    ticks: 60,
+                    origin: { x: Math.random() * 0.3 + 0.6, y: Math.random() * 0.4 + 0.1 },
+                    zIndex: 9999
+                });
+            }, 250);
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            document.getElementById('wheelResult').innerText = "⏳ Đang quay...";
+
+            const totalSlices = students.length;
+            if (totalSlices === 0) return;
+
+            spinAudio.currentTime = 0;
+            spinAudio.loop = true;
+            spinAudio.play().catch(err => console.log("Không thể tự động phát nhạc:", err));
+
+            const sliceAngle = (2 * Math.PI) / totalSlices;
+            // Tăng tổng số vòng xoay tối thiểu để quay mượt hơn trong thời gian dài hơn
+            const randomRotation = (Math.floor(Math.random() * 360) + 7200) * (Math.PI / 180); 
+            const startAngle = currentAngle;
+            const targetAngle = startAngle + randomRotation;
+            
+            const duration = 15000; // Tăng thời gian quay lên 15 giây
+            const startTime = performance.now();
+            let lastSliceIndex = -1;
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const easeOut = 1 - Math.pow(1 - progress, 5);
+                currentAngle = startAngle + (targetAngle - startAngle) * easeOut;
+
+                let angleAtTop = (1.5 * Math.PI - (currentAngle % (2 * Math.PI))) % (2 * Math.PI);
+                if (angleAtTop < 0) angleAtTop += 2 * Math.PI;
+                const currentSliceIndex = Math.floor(angleAtTop / sliceAngle) % totalSlices;
+
+                if (currentSliceIndex !== lastSliceIndex) {
+                    playTickSound();
+                    lastSliceIndex = currentSliceIndex;
+                }
+
+                drawWheel();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isSpinning = false;
+                    
+                    spinAudio.pause();
+                    spinAudio.currentTime = 0;
+
+                    const winnerIndex = currentSliceIndex;
+                    const winner = students[winnerIndex].name;
+                    document.getElementById('wheelResult').innerText = `🎉 Mời học sinh: ${winner}!`;
+
+                    playWinSound();
+                    triggerFireworks();
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>
