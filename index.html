@@ -198,10 +198,12 @@
             align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             transition: transform 0.15s, box-shadow 0.15s;
+            cursor: pointer;
         }
         .student-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            border-color: var(--primary);
         }
 
         .student-meta { display: flex; align-items: center; gap: 12px; }
@@ -514,6 +516,35 @@
         }
 
         .center-btn:hover { background: #16a34a; }
+
+        /* Giao diện xem cá nhân của Học sinh */
+        .student-portal-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Khung hiển thị lịch sử vi phạm cho Admin/Giáo viên */
+        .history-box-modal {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .history-box-item {
+            padding: 3px 0;
+            border-bottom: 1px dashed #e2e8f0;
+            color: var(--text-main);
+        }
+        .history-box-item:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
@@ -528,6 +559,9 @@
             <button class="btn-logout" onclick="logout()">Đăng xuất</button>
         </div>
 
+        <!-- Khung xem riêng cho Học sinh -->
+        <div id="studentPersonalView" style="display: none;"></div>
+
         <!-- Banner Header Dashboard -->
         <div class="app-header">
             <div class="header-top">
@@ -538,8 +572,11 @@
                 <div class="week-badge" id="currentWeekDisplay">Tuần 1</div>
             </div>
 
-            <!-- Các nút thao tác Tuần, Thêm HS & Xuất file & Trò chơi -->
+            <!-- Các nút thao tác Tuần, Thêm HS, Xuất file, Trò chơi & Nút Admin mới -->
             <div class="week-actions">
+                <button class="btn-week-action" id="btnAdminPanel" style="display: none; background: #eab308; color: #0f172a; font-weight: 700;" onclick="openAdminModal()">
+                    ⚙️ Quyền Admin
+                </button>
                 <button class="btn-week-action" id="btnNewWeek" style="display: none;" onclick="saveAndStartNewWeek()">
                     💾 Lưu & Sang tuần mới
                 </button>
@@ -616,7 +653,7 @@
                 <div class="form-group">
                     <label>Vai trò người dùng</label>
                     <select id="regRole" onchange="toggleTeacherCodeInput()">
-                        <option value="student">Học sinh / Phụ huynh (Chỉ xem)</option>
+                        <option value="student">Học sinh / Phụ huynh (Chỉ xem điểm)</option>
                         <option value="teacher">Giáo viên / Ban cán sự (Có quyền cộng/trừ điểm)</option>
                     </select>
                 </div>
@@ -629,6 +666,69 @@
                 <div class="auth-error" id="regError">Tên đăng nhập đã tồn tại!</div>
                 <button type="submit" class="btn-submit">Tạo Tài Khoản</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Admin Tùy Ý Chỉnh Sửa Mọi Thứ -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">⚙️ Quản Trị Hệ Thống Admin</div>
+                    <p style="font-size: 12px; color: var(--text-muted);">Tùy ý sửa điểm, thông tin và tài khoản</p>
+                </div>
+                <div class="close-icon" onclick="closeModal('adminModal')">✕</div>
+            </div>
+
+            <!-- Tab Admin -->
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="tabAdminEdit" onclick="switchAdminTab('edit')">Sửa Học Sinh</div>
+                <div class="auth-tab" id="tabAdminUsers" onclick="switchAdminTab('users')">Tài Khoản</div>
+            </div>
+
+            <!-- Section 1: Chỉnh sửa trực tiếp học sinh -->
+            <div id="adminEditSection">
+                <div class="form-group">
+                    <label>Chọn học sinh cần sửa</label>
+                    <select id="adminSelectStudent" onchange="loadAdminStudentData()">
+                        <!-- Dynamic Options -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tên học sinh</label>
+                    <input type="text" id="adminStudentName">
+                </div>
+                <div class="form-group">
+                    <label>Điểm hạnh kiểm (nhập tùy ý)</label>
+                    <input type="number" id="adminStudentScore">
+                </div>
+                <div class="form-group">
+                    <label>Ghi chú gần nhất</label>
+                    <input type="text" id="adminStudentNote">
+                </div>
+                <button class="btn-submit" onclick="saveAdminStudentEdit()">💾 Lưu Thay Đổi Trực Tiếp</button>
+            </div>
+
+            <!-- Section 2: Quản lý tài khoản -->
+            <div id="adminUsersSection" style="display: none;">
+                <div class="section-label">Danh sách tài khoản trong hệ thống</div>
+                <div id="adminUserList" style="max-height: 250px; overflow-y: auto; margin-bottom: 12px;"></div>
+
+                <div class="section-label" style="color: var(--primary);">Tạo / Cập nhật Tài Khoản Mới</div>
+                <div class="form-group">
+                    <input type="text" id="adminNewUser" placeholder="Tên đăng nhập (VD: nguyentheanh)">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="adminNewPass" placeholder="Mật khẩu (VD: nguyentheanh123)">
+                </div>
+                <div class="form-group">
+                    <select id="adminNewRole">
+                        <option value="student">Học sinh / Phụ huynh</option>
+                        <option value="teacher">Giáo viên / Ban cán sự / Admin</option>
+                    </select>
+                </div>
+                <button class="btn-submit" onclick="adminCreateAccount()">➕ Tạo / Sửa Tài Khoản Này</button>
+            </div>
         </div>
     </div>
 
@@ -657,6 +757,12 @@
                     <p style="font-size: 12px; color: var(--text-muted);" id="modalStudentScore">Hiện tại: 100 điểm</p>
                 </div>
                 <div class="close-icon" onclick="closeModal('ruleModal')">✕</div>
+            </div>
+
+            <!-- Khung Lịch Sử Vi Phạm & Cộng Điểm Tuần Này cho Admin/GV Xem -->
+            <div class="section-label" style="color: var(--primary); margin-top:0;">📋 Lịch sử vi phạm / cộng điểm tuần này</div>
+            <div class="history-box-modal" id="modalStudentHistory">
+                <!-- Nội dung lịch sử vi phạm được chèn động -->
             </div>
 
             <!-- Ô nhập điểm tùy chỉnh -->
@@ -809,7 +915,8 @@
 
         const defaultAdmins = [
             { username: 'admin', password: '0397018120', role: 'teacher' },
-            { username: 'gvcn', password: 'gvcnlop11a1', role: 'teacher' }
+            { username: 'gvcn', password: 'gvcnlop11a1', role: 'teacher' },
+            { username: 'nguyentheanh', password: 'nguyentheanh123', role: 'student', studentName: 'Nguyễn Thế Anh' }
         ];
 
         let accounts = JSON.parse(localStorage.getItem('class11A1_Accounts')) || defaultAdmins;
@@ -819,6 +926,7 @@
             if (existing) {
                 existing.password = adminAcc.password;
                 existing.role = adminAcc.role;
+                if (adminAcc.studentName) existing.studentName = adminAcc.studentName;
             } else {
                 accounts.push(adminAcc);
             }
@@ -830,13 +938,13 @@
         let archives = JSON.parse(localStorage.getItem('class11A1_Archives')) || [];
 
         let students = JSON.parse(localStorage.getItem('class11A1_HanhKiemRankedData')) || 
-            defaultNames.map(name => ({ name: name, score: 100, lastNote: '' }));
+            defaultNames.map(name => ({ name: name, score: 100, lastNote: '', history: [] }));
 
-        // Tự động làm sạch các dòng hiển thị "Đã đặt lại 100đ" cũ
         students.forEach(st => {
             if (st.lastNote && st.lastNote.includes('Đã đặt lại')) {
                 st.lastNote = '';
             }
+            if (!st.history) st.history = [];
         });
 
         let selectedIndex = null;
@@ -946,11 +1054,56 @@
             const isTeacher = currentUser.role === 'teacher';
             document.getElementById('currentRole').innerText = isTeacher ? 'Giáo viên / BCS' : 'Học sinh / PH';
             
+            document.getElementById('btnAdminPanel').style.display = isTeacher ? 'block' : 'none';
             document.getElementById('btnNewWeek').style.display = isTeacher ? 'block' : 'none';
             document.getElementById('btnAddStudent').style.display = isTeacher ? 'block' : 'none';
             document.getElementById('currentWeekDisplay').innerText = `Tuần ${currentWeek}`;
 
+            renderStudentPersonalView();
             render();
+        }
+
+        /* --- XỬ LÝ XEM ĐIỂM RIÊNG CỦA HỌC SINH --- */
+        function renderStudentPersonalView() {
+            const container = document.getElementById('studentPersonalView');
+            if (!currentUser || currentUser.role === 'teacher') {
+                container.style.display = 'none';
+                return;
+            }
+
+            // Tự động tìm học sinh khớp tên tài khoản hoặc tên quy đổi
+            let matchedStudent = students.find(s => 
+                s.name.toLowerCase().replace(/\s+/g, '') === currentUser.username.toLowerCase().replace(/\s+/g, '') ||
+                (currentUser.studentName && s.name.toLowerCase() === currentUser.studentName.toLowerCase())
+            );
+
+            if (matchedStudent) {
+                const rank = getConductRank(matchedStudent.score);
+                let historyHtml = matchedStudent.history && matchedStudent.history.length > 0 
+                    ? matchedStudent.history.map(h => `<li style="font-size:12px; margin-top:4px;">• ${h}</li>`).join('')
+                    : '<li style="font-size:12px; opacity:0.8;">Chưa có ghi nhận vi phạm hay cộng điểm nào.</li>';
+
+                container.innerHTML = `
+                    <div class="student-portal-card">
+                        <div style="font-size:12px; text-transform:uppercase; font-weight:700; opacity:0.9;">Giao Diện Cá Nhân</div>
+                        <h2 style="font-size:20px; margin-top:4px;">Xin chào, ${matchedStudent.name}!</h2>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; background:rgba(255,255,255,0.2); padding:12px 16px; border-radius:12px;">
+                            <div>
+                                <div style="font-size:12px;">Điểm Hạnh Kiểm Tuần ${currentWeek}</div>
+                                <div style="font-size:24px; font-weight:700;">${matchedStudent.score} điểm</div>
+                            </div>
+                            <span class="rank-badge ${rank.cssClass}" style="font-size:13px; padding:6px 12px;">${rank.name}</span>
+                        </div>
+                        <div style="margin-top:12px;">
+                            <div style="font-size:12px; font-weight:700;">Lịch sử nhận điểm tuần này:</div>
+                            <ul style="list-style:none; padding-left:0; margin-top:4px;">${historyHtml}</ul>
+                        </div>
+                    </div>
+                `;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
         }
 
         function getConductRank(score) {
@@ -986,6 +1139,12 @@
 
                 const li = document.createElement('li');
                 li.className = 'student-card';
+                // Ấn vào học sinh để xem chi tiết hoặc cộng/trừ điểm
+                li.onclick = (e) => {
+                    if (e.target.tagName === 'BUTTON') return;
+                    handleStudentCardClick(index);
+                };
+
                 li.innerHTML = `
                     <div class="student-meta">
                         <div class="avatar">${getInitials(student.name)}</div>
@@ -1015,6 +1174,23 @@
             localStorage.setItem('class11A1_HanhKiemRankedData', JSON.stringify(students));
         }
 
+        /* --- HIỂN THỊ TẤT CẢ LỖI ĐÃ TÍCH KHI BẤM VÀO HỌC SINH --- */
+        function handleStudentCardClick(index) {
+            const st = students[index];
+            if (currentUser && currentUser.role === 'teacher') {
+                openEvalModal(index);
+            } else {
+                let historyListText = "";
+                if (st.history && st.history.length > 0) {
+                    historyListText = st.history.map(item => item).join("\n");
+                } else {
+                    historyListText = "Không có vi phạm";
+                }
+
+                alert(`Học sinh: ${st.name}\nĐiểm hiện tại: ${st.score} điểm\n\nGhi chú / Lỗi vi phạm:\n${historyListText}`);
+            }
+        }
+
         function filterStudents() {
             const q = document.getElementById('searchInput').value.toLowerCase();
             const cards = document.querySelectorAll('.student-card');
@@ -1022,6 +1198,124 @@
                 const name = card.querySelector('.student-name').innerText.toLowerCase();
                 card.style.display = name.includes(q) ? 'flex' : 'none';
             });
+        }
+
+        /* --- QUẢN TRỊ ADMIN (TÙY Ý CHỈNH SỬA MỌI THỨ) --- */
+        function openAdminModal() {
+            if (!currentUser || currentUser.role !== 'teacher') return;
+            
+            const select = document.getElementById('adminSelectStudent');
+            select.innerHTML = '';
+            students.forEach((st, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.innerText = st.name;
+                select.appendChild(opt);
+            });
+
+            loadAdminStudentData();
+            renderAdminUserList();
+            document.getElementById('adminModal').style.display = 'flex';
+        }
+
+        function switchAdminTab(tab) {
+            if (tab === 'edit') {
+                document.getElementById('tabAdminEdit').classList.add('active');
+                document.getElementById('tabAdminUsers').classList.remove('active');
+                document.getElementById('adminEditSection').style.display = 'block';
+                document.getElementById('adminUsersSection').style.display = 'none';
+            } else {
+                document.getElementById('tabAdminUsers').classList.add('active');
+                document.getElementById('tabAdminEdit').classList.remove('active');
+                document.getElementById('adminEditSection').style.display = 'none';
+                document.getElementById('adminUsersSection').style.display = 'block';
+            }
+        }
+
+        function loadAdminStudentData() {
+            const idx = document.getElementById('adminSelectStudent').value;
+            if (idx === '' || !students[idx]) return;
+            const st = students[idx];
+            document.getElementById('adminStudentName').value = st.name;
+            document.getElementById('adminStudentScore').value = st.score;
+            document.getElementById('adminStudentNote').value = st.lastNote || '';
+        }
+
+        function saveAdminStudentEdit() {
+            const idx = document.getElementById('adminSelectStudent').value;
+            if (idx === '' || !students[idx]) return;
+
+            const newName = document.getElementById('adminStudentName').value.trim();
+            const newScore = parseInt(document.getElementById('adminStudentScore').value);
+            const newNote = document.getElementById('adminStudentNote').value.trim();
+
+            if (!newName || isNaN(newScore)) {
+                alert('Vui lòng nhập thông tin hợp lệ!');
+                return;
+            }
+
+            students[idx].name = newName;
+            students[idx].score = newScore;
+            students[idx].lastNote = newNote;
+
+            alert('Đã cập nhật thành công!');
+            closeModal('adminModal');
+            renderStudentPersonalView();
+            render();
+        }
+
+        function renderAdminUserList() {
+            const list = document.getElementById('adminUserList');
+            list.innerHTML = '';
+            accounts.forEach((acc, i) => {
+                const item = document.createElement('div');
+                item.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:var(--bg-main); border-radius:8px; font-size:12px; margin-bottom:6px;';
+                item.innerHTML = `
+                    <div>
+                        <strong>${acc.username}</strong> (${acc.role === 'teacher' ? 'Admin' : 'Học sinh'})
+                        <div style="color:var(--text-muted);">Mật khẩu: ${acc.password}</div>
+                    </div>
+                    <button style="background:var(--danger-bg); color:var(--danger); border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;" onclick="adminDeleteAccount(${i})">Xóa</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function adminCreateAccount() {
+            const u = document.getElementById('adminNewUser').value.trim();
+            const p = document.getElementById('adminNewPass').value.trim();
+            const r = document.getElementById('adminNewRole').value;
+
+            if (!u || !p) {
+                alert('Vui lòng điền đủ Tên đăng nhập và Mật khẩu!');
+                return;
+            }
+
+            const existingIndex = accounts.findIndex(acc => acc.username === u);
+            if (existingIndex >= 0) {
+                accounts[existingIndex].password = p;
+                accounts[existingIndex].role = r;
+            } else {
+                accounts.push({ username: u, password: p, role: r });
+            }
+
+            localStorage.setItem('class11A1_Accounts', JSON.stringify(accounts));
+            document.getElementById('adminNewUser').value = '';
+            document.getElementById('adminNewPass').value = '';
+            renderAdminUserList();
+            alert('Đã lưu tài khoản thành công!');
+        }
+
+        function adminDeleteAccount(index) {
+            if (accounts[index].username === 'admin') {
+                alert('Không thể xóa tài khoản admin gốc!');
+                return;
+            }
+            if (confirm(`Bạn có chắc muốn xóa tài khoản "${accounts[index].username}"?`)) {
+                accounts.splice(index, 1);
+                localStorage.setItem('class11A1_Accounts', JSON.stringify(accounts));
+                renderAdminUserList();
+            }
         }
 
         /* --- QUẢN LÝ HỌC SINH (THÊM / SỬA / XÓA) --- */
@@ -1049,12 +1343,13 @@
             }
 
             if (editingStudentIndex === null) {
-                students.push({ name: name, score: 100, lastNote: 'Học sinh mới' });
+                students.push({ name: name, score: 100, lastNote: 'Học sinh mới', history: [] });
             } else {
                 students[editingStudentIndex].name = name;
             }
 
             closeModal('manageStudentModal');
+            renderStudentPersonalView();
             render();
         }
 
@@ -1064,23 +1359,39 @@
 
             students.splice(editingStudentIndex, 1);
             closeModal('manageStudentModal');
+            renderStudentPersonalView();
             render();
         }
 
-        /* --- ĐÁNH GIÁ ĐIỂM HẠNH KIỂM --- */
+        /* --- ĐÁNH GIÁ ĐIỂM HẠNH KIỂM & HIỂN THỊ CÁC LỖI CHO ADMIN --- */
         function openEvalModal(index) {
             selectedIndex = index;
             const st = students[index];
             document.getElementById('modalStudentName').innerText = st.name;
             document.getElementById('modalStudentScore').innerText = `Hiện tại: ${st.score} điểm`;
+            
+            // Cập nhật danh sách tất cả các lỗi/điểm đã tích vào khung trong modal
+            const historyContainer = document.getElementById('modalStudentHistory');
+            if (st.history && st.history.length > 0) {
+                historyContainer.innerHTML = st.history.map(item => `<div class="history-box-item">• ${item}</div>`).join('');
+            } else {
+                historyContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Chưa có lỗi vi phạm hay cộng điểm nào.</div>';
+            }
+
             document.getElementById('ruleModal').style.display = 'flex';
         }
 
         function applyRule(ruleName, pts) {
             if (selectedIndex === null) return;
             students[selectedIndex].score += pts;
-            students[selectedIndex].lastNote = `${ruleName} (${pts > 0 ? '+' + pts : pts}đ)`;
+            const note = `${ruleName} (${pts > 0 ? '+' + pts : pts}đ)`;
+            students[selectedIndex].lastNote = note;
+            
+            if (!students[selectedIndex].history) students[selectedIndex].history = [];
+            students[selectedIndex].history.unshift(note);
+
             closeModal('ruleModal');
+            renderStudentPersonalView();
             render();
         }
 
@@ -1096,22 +1407,29 @@
 
             const pts = parseInt(ptsInput);
             const reason = reasonInput || (pts >= 0 ? 'Cộng điểm' : 'Trừ điểm');
+            const note = `${reason} (${pts > 0 ? '+' + pts : pts}đ)`;
 
             students[selectedIndex].score += pts;
-            students[selectedIndex].lastNote = `${reason} (${pts > 0 ? '+' + pts : pts}đ)`;
+            students[selectedIndex].lastNote = note;
+
+            if (!students[selectedIndex].history) students[selectedIndex].history = [];
+            students[selectedIndex].history.unshift(note);
 
             document.getElementById('customPts').value = '';
             document.getElementById('customReason').value = '';
 
             closeModal('ruleModal');
+            renderStudentPersonalView();
             render();
         }
 
         function resetSingleStudent() {
             if (selectedIndex === null) return;
             students[selectedIndex].score = 100;
-            students[selectedIndex].lastNote = ''; // Xóa sạch dòng ghi chú chữ
+            students[selectedIndex].lastNote = '';
+            students[selectedIndex].history = [];
             closeModal('ruleModal');
+            renderStudentPersonalView();
             render();
         }
 
@@ -1122,14 +1440,14 @@
                 return;
             }
 
-            let csvContent = "\uFEFFSTT,Họ và tên,Điểm hạnh kiểm,Xếp loại,Ghi chú gần nhất\n";
+            let csvContent = "\uFEFFSTT,Họ và tên,Điểm hạnh kiểm,Xếp loại,Ghi chú tất cả lỗi\n";
             students.forEach((st, idx) => {
                 const rank = getConductRank(st.score).name;
-                const note = st.lastNote ? st.lastNote.replace(/,/g, ' ') : '';
-                csvContent += `${idx + 1},"${st.name}",${st.score},"${rank}","${note}"\n`;
+                const allNotes = st.history && st.history.length > 0 ? st.history.join(' | ') : '';
+                csvContent += `${idx + 1},"${st.name}",${st.score},"${rank}","${allNotes}"\n`;
             });
 
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], { type: 'type: text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -1156,7 +1474,7 @@
             });
 
             currentWeek++;
-            students.forEach(st => { st.score = 100; st.lastNote = ''; });
+            students.forEach(st => { st.score = 100; st.lastNote = ''; st.history = []; });
 
             localStorage.setItem('class11A1_CurrentWeek', currentWeek);
             localStorage.setItem('class11A1_Archives', JSON.stringify(archives));
@@ -1245,7 +1563,6 @@
             }
         }
 
-        // Âm thanh ngân dài chiến thắng "ting ting" dồn dập & hiệu ứng ngân
         function playWinSound() {
             try {
                 const ctx = getAudioContext();
@@ -1256,7 +1573,7 @@
                     { f: 1046.50, t: 0.45, d: 0.6 },// C6
                     { f: 1318.51, t: 0.70, d: 0.5 },// E6 (Ting)
                     { f: 1567.98, t: 0.90, d: 0.5 },// G6 (Ting)
-                    { f: 2093.00, t: 1.10, d: 1.2 } // C7 (Tinggggg ngân dài)
+                    { f: 2093.00, t: 1.10, d: 1.2 } // C7 (Ting)
                 ];
 
                 notes.forEach(item => {
@@ -1377,12 +1694,11 @@
             spinAudio.play().catch(err => console.log("Không thể tự động phát nhạc:", err));
 
             const sliceAngle = (2 * Math.PI) / totalSlices;
-            // Tăng tổng số vòng xoay tối thiểu để quay mượt hơn trong thời gian dài hơn
             const randomRotation = (Math.floor(Math.random() * 360) + 7200) * (Math.PI / 180); 
             const startAngle = currentAngle;
             const targetAngle = startAngle + randomRotation;
             
-            const duration = 15000; // Tăng thời gian quay lên 15 giây
+            const duration = 15000;
             const startTime = performance.now();
             let lastSliceIndex = -1;
 
